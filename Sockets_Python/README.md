@@ -97,4 +97,4 @@ Antes de ejecutar el sistema, asegúrate de cumplir con los siguientes requisito
     📂 Sockets_Python
      ├── README.md
      ├── cliente.py
-     └──server.py
+     └── server.py
