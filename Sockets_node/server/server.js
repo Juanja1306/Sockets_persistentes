@@ -1,7 +1,7 @@
 const net = require('net');
 const crypto = require('crypto');
-const chalk = require('chalk'); // Importamos chalk
-const ora = require('ora'); // Importamos ora
+const chalk = require('chalk');
+const ora = require('ora');
 
 // Configuración para cifrado y HMAC
 const ALG = 'aes-256-cbc';
@@ -9,10 +9,10 @@ const KEY = '11111111111111111111111111111111'; // 32 bits
 const IV = Buffer.from('0000000000000000'); // 16 bits
 const HMAC_SECRET = 'admin123';
 
-// Persistencia de clientes
-const clients = new Map(); // Almacena clientes por ID único
+// Mapa para gestionar usuarios
+const users = new Map(); // { username: { socket, active, queue } }
 
-// Función para cifrar mensajes
+// Funciones de cifrado y HMAC (sin cambios)
 function encryptMessage(message) {
     const cipher = crypto.createCipheriv(ALG, KEY, IV);
     let encrypted = cipher.update(message, 'utf8', 'hex');
@@ -20,7 +20,6 @@ function encryptMessage(message) {
     return encrypted;
 }
 
-// Función para descifrar mensajes
 function decryptMessage(encryptedMessage) {
     const decipher = crypto.createDecipheriv(ALG, KEY, IV);
     let decrypted = decipher.update(encryptedMessage, 'hex', 'utf8');
@@ -28,21 +27,18 @@ function decryptMessage(encryptedMessage) {
     return decrypted;
 }
 
-// Función para generar HMAC
 function generateHMAC(message) {
     return crypto.createHmac('sha256', HMAC_SECRET).update(message).digest('hex');
 }
 
-// Función para verificar HMAC
 function verifyHMAC(message, hmac) {
     const calculatedHMAC = generateHMAC(message);
     return hmac === calculatedHMAC;
 }
 
-// Manejo de conexiones de clientes
+// Crear servidor
 const server = net.createServer((socket) => {
-    let id = null;  // ID único del cliente
-    let name = null; // Nombre del cliente
+    let username = null;
 
     console.log(chalk.green.bold(`Cliente conectado: ${socket.remoteAddress}:${socket.remotePort}`));
 
@@ -59,30 +55,37 @@ const server = net.createServer((socket) => {
                 return;
             }
 
-            // Asignar ID único a un nuevo cliente
-            if (!id) {
-                id = `${socket.remoteAddress}:${socket.remotePort}`;
-            }
+            if (!username) {
+                username = message;
 
-            // Registrar o actualizar cliente
-            if (!clients.has(id)) {
-                name = message; // El primer mensaje es el nombre
-                if ([...clients.values()].some(client => client.name === name)) {
-                    socket.write(chalk.yellow('Error: Nombre de usuario ya en uso.\n'));
-                    socket.end(); // Cierra la conexión
-                    return;
+                // Registrar o actualizar el usuario
+                if (users.has(username)) {
+                    // Usuario existente: actualizar estado a activo y asociar socket
+                    const userData = users.get(username);
+                    userData.active = true;
+                    userData.socket = socket;
+
+                    // Enviar mensajes pendientes
+                    const queue = userData.queue;
+                    if (queue.length > 0) {
+                        socket.write(chalk.green.bold('Tienes mensajes pendientes:\n'));
+                        queue.forEach((queuedMessage) => {
+                            socket.write(`${chalk.green.bold(queuedMessage)}\n`);
+                        });
+                        userData.queue = []; // Vaciar la cola
+                    }
+
+                    console.log(chalk.blue.bold(`Usuario reconectado: ${username}`));
+                } else {
+                    // Nuevo usuario: registrar
+                    users.set(username, { socket, active: true, queue: [] });
+                    console.log(chalk.blue.bold(`Nuevo cliente registrado: ${username}`));
                 }
 
-                clients.set(id, { socket, name: name });
-                console.log(chalk.blue.bold(`Nuevo cliente registrado: ${name} (ID: ${id})`));
-
-                // Notificar a los demás clientes
-                broadcast(`${name} se ha conectado.`, id);
+                socket.write(`¡Bienvenido, ${username}!\n`);
             } else {
-                // Procesar mensajes normales
-                if (message) {
-                    broadcast(`${name}: ${message}`, id);
-                }
+                // Difundir mensaje
+                broadcast(`${username}: ${message}`, username);
             }
         } catch (err) {
             console.error(chalk.red.bold('Error al procesar el mensaje:', err.message));
@@ -90,10 +93,15 @@ const server = net.createServer((socket) => {
     });
 
     socket.on('close', () => {
-        if (id && clients.has(id)) {
-            console.log(chalk.yellow.bold(`\nCliente desconectado: ${id}`));
-            clients.delete(id);
-            broadcast(`${name} se ha desconectado.`, id);
+        if (username) {
+            console.log(chalk.yellow.bold(`Cliente desconectado: ${username}`));
+
+            // Marcar usuario como inactivo
+            const userData = users.get(username);
+            if (userData) {
+                userData.active = false;
+                userData.socket = null; // Desasociar el socket
+            }
         }
     });
 
@@ -102,16 +110,30 @@ const server = net.createServer((socket) => {
     });
 });
 
-// Función para difundir mensajes a todos los clientes excepto el remitente
-function broadcast(message, senderId) {
-    clients.forEach((client, id) => {
-        if (id !== senderId) {
-            client.socket.write(`${chalk.green.bold(message)}\n`);  // Añadir salto de línea
+// Difundir mensajes
+function broadcast(message, senderName) {
+    users.forEach((userData, username) => {
+        if (username !== senderName) {
+            if (userData.active && userData.socket) {
+                // Enviar mensaje al usuario activo
+                try {
+                    userData.socket.write(`${chalk.green.bold(message)}\n`);
+                } catch (error) {
+                    console.error(`Error enviando mensaje a ${username}:`, error.message);
+
+                    // Encolar el mensaje si ocurre un error
+                    userData.queue.push(message);
+                    userData.active = false; // Marcar como inactivo si el socket falla
+                }
+            } else {
+                // Usuario inactivo: encolar el mensaje
+                userData.queue.push(message);
+            }
         }
     });
 }
 
-// Usamos ora para mostrar un spinner mientras el servidor está escuchando
+// Iniciar servidor
 const spinner = ora('Servidor TCP escuchando en el puerto 8000').start();
 server.listen(8000, () => {
     spinner.succeed(chalk.cyan.bold('Servidor en línea y escuchando en el puerto 8000'));
