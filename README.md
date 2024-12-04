@@ -34,7 +34,7 @@ La implementación de persistencia de mensajes ante la desconexión de clientes 
 ---
 # Video Youtube
 
-## **https://youtu.be/JdJh8zY4SvI**
+## **https://youtu.be/DyBD58h2R9E**
 
 ---
 
