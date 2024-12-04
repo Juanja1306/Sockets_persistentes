@@ -92,3 +92,10 @@ Antes de ejecutar el sistema, asegúrate de cumplir con los siguientes requisito
 2. **Puerto**: Si el puerto `5555` ya está en uso, puedes cambiarlo en los archivos.
 3. **Detener el servidor**: Usa `CTRL+C` en la terminal donde se ejecuta el servidor para detenerlo manualmente.
 
+## **Estructura de Archivos**
+   ```bash
+    📂 Sockets_Python
+     ├── cliente.py
+     └──server.py
+
+
