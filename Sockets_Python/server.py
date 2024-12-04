@@ -4,6 +4,7 @@ import hmac
 import hashlib
 import os
 import json
+import time
 
 # Diccionario para manejar los clientes y sus apodos (nicknames)
 clients = {}  # Ahora sólo almacena los nicknames de los clientes
@@ -60,7 +61,9 @@ def send_pending_messages(client_socket):
             for message in messages[exit_index + 1:]:
                 auxiliar=first_key+": "+message
                 hmac_hash = generate_hmac(auxiliar)
+                time.sleep(0.5)
                 client_socket.send(f"{auxiliar}|{hmac_hash}".encode('utf-8'))
+                time.sleep(0.5)
             
             messages_history[first_key] = []
         
