@@ -95,7 +95,6 @@ Antes de ejecutar el sistema, asegúrate de cumplir con los siguientes requisito
 ## **Estructura de Archivos**
    ```bash
     📂 Sockets_Python
+     ├── README.md
      ├── cliente.py
      └──server.py
-
-
