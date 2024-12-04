@@ -12,7 +12,9 @@ Esta es una aplicación de chat basada en el protocolo TCP desarrollada en Node.
 - **Autenticación HMAC**: Verifica la integridad de los mensajes utilizando HMAC con SHA-256.  
 - **Reconexión Automática**: El cliente intenta reconectarse al servidor en caso de desconexión.  
 - **Diferenciación Visual de Mensajes**: Usa `chalk` para resaltar mensajes del servidor, notificaciones y mensajes de otros usuarios.  
-- **Múltiples Clientes**: Soporta la conexión de múltiples usuarios simultáneamente.  
+- **Múltiples Clientes**: Soporta la conexión de múltiples usuarios simultáneamente.
+- **Persistencia de Mensajes**: Los mensajes que se envian a un cliente que se encuentre fuera de linea se almacenan en el servidor hasta que éste vuelva estar disponible, seguidamente 
+  cuando el usuario se reconecta el servidor le reenvia estos mensajes.
 
 ---
 
