@@ -26,8 +26,11 @@ Este proyecto consiste en el desarrollo de una aplicación de comunicación grup
    - La implementación y los resultados obtenidos.
 
 ---
+
 # Implementacion de persistencia de mensjes ante la desconexion de clientes
+
 La implementación de persistencia de mensajes ante la desconexión de clientes permite que los mensajes enviados mientras un cliente no está conectado se almacenen en el servidor. Cuando el cliente se reconecta, recibe automáticamente los mensajes pendientes de entrega. Esta funcionalidad mejora la experiencia del usuario, asegurando que no se pierdan mensajes importantes incluso después de una desconexión temporal.
+
 ---
 # Video Youtube
 
