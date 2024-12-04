@@ -1,13 +1,13 @@
 # Descripción del Proyecto
 
-Este proyecto implementa un sistema de chat seguro basado en sockets TCP y asegura la comunicación entre clientes y servidor mediante HMAC (Hash-Based Message Authentication Code). 
+Este proyecto implementa un sistema de chat seguro basado en sockets TCP y asegura la comunicación entre clientes y servidor mediante HMAC (Hash-Based Message Authentication Code). Además, incluye una funcionalidad de **mensajes persistentes** que permite almacenar los mensajes no entregados y reenviarlos a los clientes cuando se reconectan.
 
 ## Componentes principales:
 
-1. **Servidor de chat**: Coordina las comunicaciones entre los clientes y verifica la autenticidad de los mensajes.
-2. **Cliente de chat**: Proporciona una interfaz gráfica para enviar y recibir mensajes.
+1. **Servidor de chat**: Coordina las comunicaciones entre los clientes y verifica la autenticidad de los mensajes. También gestiona los mensajes persistentes.
+2. **Cliente de chat**: Proporciona una interfaz gráfica para enviar y recibir mensajes. Los clientes también pueden recibir mensajes no entregados si se reconectan al servidor.
 
-El sistema garantiza la integridad y autenticidad de los mensajes mediante el uso de una clave secreta compartida.
+El sistema garantiza la integridad y autenticidad de los mensajes mediante el uso de una clave secreta compartida y ofrece una experiencia mejorada de reconexión para los usuarios.
 
 ---
 
@@ -40,6 +40,7 @@ Antes de ejecutar el sistema, asegúrate de cumplir con los siguientes requisito
      - Conexiones entrantes.
      - Desconexiones.
      - Errores y mensajes transmitidos.
+   - El servidor ahora también maneja el historial de mensajes no entregados y los envía a los clientes que se reconectan.
 
 4. **Por defecto**:
    - El servidor se ejecutará en `127.0.0.1` (localhost) en el puerto `5555`.
@@ -63,9 +64,17 @@ Antes de ejecutar el sistema, asegúrate de cumplir con los siguientes requisito
      - Ingresar tu nickname (se pedirá al inicio).
      - Enviar mensajes al chat público.
      - Ver una lista de usuarios conectados.
+   - Los mensajes que no se hayan entregado durante una desconexión anterior se enviarán automáticamente cuando el cliente se reconecte.
 
 4. **Reconexión Automática**:
    - Si la conexión con el servidor se pierde, el cliente intentará reconectarse automáticamente cada 5 segundos.
+
+---
+
+## Funcionalidad de Mensajes Persistentes
+
+- **Almacenamiento de mensajes no entregados**: Los mensajes enviados mientras un cliente no está conectado se almacenan temporalmente en el servidor.
+- **Recuperación de mensajes no entregados**: Cuando un cliente se reconecta, el servidor le envía todos los mensajes pendientes de entrega.
 
 ---
 
@@ -83,6 +92,3 @@ Antes de ejecutar el sistema, asegúrate de cumplir con los siguientes requisito
 2. **Puerto**: Si el puerto `5555` ya está en uso, puedes cambiarlo en los archivos.
 3. **Detener el servidor**: Usa `CTRL+C` en la terminal donde se ejecuta el servidor para detenerlo manualmente.
 
----
-
-¡Disfruta del sistema de chat seguro! Si tienes dudas o problemas, revisa los comentarios en los archivos del código.
